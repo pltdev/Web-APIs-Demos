@@ -11,4 +11,5 @@ your settings, as follows:
     e.g. http://localhost:8888/ (can also be a remote URL)
 - REST_API_RequestUri - this is the script name of the REST Service API to forward the event to,
     i.e. the bit of the URL after the BaseURL, e.g. myscript.php
+    
 Author: Lewis.Collins@Plantronics.com, 22nd June 2017
