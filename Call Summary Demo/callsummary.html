@@ -1,0 +1,63 @@
+<html>
+<body onload="UpdateDeviceStates();">
+<!-- jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<!-- Json2html -->
+<script src="jquery.json2html-master/json2html.js"></script>
+<script src="jquery.json2html-master/jquery.json2html.js"></script>
+<script>
+function convertTime(timestr)
+{
+    var date = new Date(+timestr);
+    return date;
+}
+function millisToMinutesAndSeconds(millis) {
+  var minutes = Math.floor(millis / 60000);
+  var seconds = ((millis % 60000) / 1000).toFixed(0);
+  return minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
+}
+//List item transform
+var transform = {"<>":"li","id":"${id}","html":[
+    {"<>":"span","html":"Call Id: ${call.id}"},
+    {"<>":"span","html":function() { return " Start: " + convertTime(this.call.startTime); } },
+    {"<>":"span","html":function() { return " End: " + convertTime(this.call.endTime); } },
+    {"<>":"span","html":function() { return " Duration (MM:SS): " + millisToMinutesAndSeconds(this.call.duration); } },
+    {"<>":"span","html":" Direction: ${call.direction}"},
+    {"<>":"span","html":" Source: ${call.source}"},
+    {"<>":"span","html":" Plugin Id: ${call.pluginId}"},
+    {"<>":"span","html":" Softphone Version: ${call.softphoneVersion}"},
+    {"<>":"span","html":" Line Type: ${call.lineType}"}
+  ]};
+function getUserName()
+{
+    var username = $("#username").val();
+    if (username.length>0)
+    {
+        return "username="+username+"&";
+    }
+    else
+    {
+        return "";
+    }
+}
+function UpdateDeviceStates()
+{
+    var data = "ajax failed";
+    
+    $.ajax({url: "https://partner-api.preview.pltzone.org/v1/reports/usage/tenant/b14710bf-d192-466e-aeef-b67f56c9ea9b/callsummary?"+getUserName()+"callStartFromDateTime=2017-06-28T00%3A35%3A31.261Z&callEndToDateTime=2017-06-30T23%3A35%3A31.261Z&page=0&count=99", async: false, success: function(result){
+                data = result;
+        }});
+
+    $(function(){
+    
+        //Create the list
+        $('#list').json2html(data.body.content,transform,{ replace: true });
+    });
+
+}
+</script>
+<h1>PLT REST API - call summary demo</h1>
+User Name: <input type="text" id="username" value="lcollins"><br />
+<button onclick="UpdateDeviceStates();">Refresh</button><br />
+<ul id="list"></ul>
+</html>
