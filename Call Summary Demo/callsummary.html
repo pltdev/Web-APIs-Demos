@@ -51,13 +51,20 @@ function UpdateDeviceStates()
     $(function(){
     
         //Create the list
-        $('#list').json2html(data.body.content,transform,{ replace: true });
+      $('#list').html('');
+	  //$('#demo-output').json2html([ {'a':'client','b':'jquery'},{'a':'server','b':'node.js'}],{'<>':'li','html':'${a} - ${b}'});
+      $('#list').json2html(data.body.content,transform);  //,{ replace: true });
     });
 
+}
+function ClearList()
+{
+    document.getElementById("list").innerHTML = "";
 }
 </script>
 <h1>PLT REST API - call summary demo</h1>
 User Name: <input type="text" id="username" value="lcollins"><br />
-<button onclick="UpdateDeviceStates();">Refresh</button><br />
-<ul id="list"></ul>
+<button onclick="ClearList(); UpdateDeviceStates();">Refresh</button><br />
+<ul id="list">
+</ul>
 </html>
