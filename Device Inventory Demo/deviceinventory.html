@@ -1,0 +1,101 @@
+<html>
+<body onload="UpdateDeviceStates();">
+<!-- jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<!-- Json2html -->
+<script src="jquery.json2html-master/json2html.js"></script>
+<script src="jquery.json2html-master/jquery.json2html.js"></script>
+<script>
+function convertTime(timestr)
+{
+    var date = new Date(+timestr);
+    return date;
+}
+function millisToMinutesAndSeconds(millis) {
+  var minutes = Math.floor(millis / 60000);
+  var seconds = ((millis % 60000) / 1000).toFixed(0);
+  return minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
+}
+//List item transform
+var transform = {"<>":"li","id":"${id}","html":[
+    {"<>":"span","html":"Product: ${product.name}"},
+    {"<>":"span","html":", User name: ${lastSeen.username}"},
+    {"<>":"span","html":", Host name: ${lastSeen.hostname}"}
+  ]};
+function getUserName()
+{
+    var username = $("#username").val();
+    if (username.length>0)
+    {
+        return "username="+username+"&";
+    }
+    else
+    {
+        return "";
+    }
+}
+function UpdateDeviceStates()
+{
+    var data = "ajax failed";
+    
+    console.log("Do request");
+    
+    $.ajax({
+        method: "GET",
+        headers: {
+            "appId":document.getElementById("appid").value
+        },
+        url: "http://plantronics-prod.apigee.net/reports/assets/tenant/" + 
+        document.getElementById("tenantid").value + 
+        "/devices?apikey=1hKMMPFMmaldnC0rcohvXN0UX7UeWPjb&lastSeenStartTime=" + 
+        encodeURIComponent(document.getElementById("lastSeenStartTime").value) + 
+        "&lastSeenEndTime=" + 
+        encodeURIComponent(document.getElementById("lastSeenEndTime").value) + 
+        "&page=" +
+        document.getElementById("page").value +
+        "&count=" +
+        document.getElementById("count").value, 
+        async: false, 
+        success: function(result){
+            data = result;
+        },
+        error: function(XMLHttpRequest, textStatus, errorThrown) { 
+            data = "Status: " + textStatus +
+                "<br />Error: " + errorThrown + 
+                "<br />Message: " + XMLHttpRequest.responseText;
+        }
+    });
+    
+    console.log("Done request");
+
+    $(function(){
+        //Create the list
+      if (data && data._embedded && data._embedded.deviceInventoryList)
+      {
+        $('#list').json2html(data._embedded.deviceInventoryList,transform);
+        console.log(data._embedded.deviceInventoryList);
+      }
+      else
+      {
+        $('#list').html("<li>" + data + "</li>");
+      }
+    });
+
+}
+function ClearList()
+{
+    document.getElementById("list").innerHTML = "";
+}
+</script>
+<h1>PLT REST API - call summary demo</h1>
+App id: <input type="text" id="appid" value="edb69c37-17d0-46a5-8bf8-38bc5ee43897" size="50"><br />
+Tenant id: <input type="text" id="tenantid" value="954681e3-7b62-447a-8783-ef447133f8c6" size="50"><br />
+Last seen start time: <input type="text" id="lastSeenStartTime" value="2017-06-01T18:41:05.735Z" size="50"><br />
+Last seen end time: <input type="text" id="lastSeenEndTime" value="2017-06-03T18:41:05.735Z" size="50"><br />
+Page: <input type="text" id="page" value="0" size="5"><br />
+Count (max 99): <input type="text" id="count" value="99" size="5"><br />
+<br />
+<button onclick="ClearList(); UpdateDeviceStates();">Refresh</button><br />
+<ul id="list">
+</ul>
+</html>
