@@ -44,7 +44,7 @@ function UpdateDeviceStates()
 {
     var data = "ajax failed";
     
-    $.ajax({url: "https://partner-api.preview.pltzone.org/v1/reports/usage/tenant/b14710bf-d192-466e-aeef-b67f56c9ea9b/callsummary?"+getUserName()+"callStartFromDateTime=2017-06-28T00%3A35%3A31.261Z&callEndToDateTime=2017-06-30T23%3A35%3A31.261Z&page=0&count=99", async: false, success: function(result){
+    $.ajax({url: "https://partner-api.preview.pltzone.org/v1/reports/usage/tenant/b14710bf-d192-466e-aeef-b67f56c9ea9b/callsummary?"+getUserName()+"callStartFromDateTime=2017-04-28T00%3A35%3A31.261Z&callEndToDateTime=2017-08-30T23%3A35%3A31.261Z&page=0&count=99", async: false, success: function(result){
                 data = result;
         }});
 
