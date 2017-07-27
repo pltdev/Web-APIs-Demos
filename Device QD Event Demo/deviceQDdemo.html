@@ -1,110 +1,154 @@
 <html>
 <head>
-<title>PLT REST API - device QD events demo (tenantQd)</title>
+    <title>PLT REST API - device QD events demo (tenantQd)</title>
 </head>
 <body onload="UpdateDeviceStates();">
-<!-- jQuery -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-<!-- Json2html -->
-<script src="jquery.json2html-master/json2html.js"></script>
-<script src="jquery.json2html-master/jquery.json2html.js"></script>
-<script>
-function convertTime(timestr)
-{
-    var date = new Date(+timestr);
-    return date;
-}
-function millisToMinutesAndSeconds(millis) {
-  var minutes = Math.floor(millis / 60000);
-  var seconds = ((millis % 60000) / 1000).toFixed(0);
-  return minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
-}
-//List item transform
-var transform = {"<>":"li","id":"${id}","html":[
-    {"<>":"span","html":"Is Connected?: ${isConnected}"},
-    {"<>":"span","html":function() { return " Date/time: " + convertTime(this.eventDate); } },
-    {"<>":"span","html":", Product: ${product.name}"},
-    {"<>":"span","html":", User: ${user.username}"},
-    {"<>":"span","html":", Host: ${user.hostname}"}
-  ]};
-function getUserName()
-{
-    var username = $("#username").val();
-    if (username.length>0)
-    {
-        return "username="+username+"&";
-    }
-    else
-    {
-        return "";
-    }
-}
-function UpdateDeviceStates()
-{
-    var data = "ajax failed";
-    
-    console.log("Do request");
-    
-    //http://plantronics-prod.apigee.net/reports/usage/commonactions/tenant/
-    //954681e3-7b62-447a-8783-ef447133f8c6/quickdisconnectusage?apikey=1hKMMPFMmaldnC0rcohvXN0UX7UeWPjb
-    //&eventFromDate=2017-06-01T21%3A06%3A18.804Z&eventToDate=2017-06-08T21%3A06%3A18.804Z&page=0&count=10
-    
-    $.ajax({
-        method: "GET",
-        headers: {
-            "appId":document.getElementById("appid").value
-        },
-        url: "http://plantronics-prod.apigee.net/reports/usage/commonactions/tenant/" + 
-        document.getElementById("tenantid").value + 
-        "/quickdisconnectusage?apikey=1hKMMPFMmaldnC0rcohvXN0UX7UeWPjb&eventFromDate=" + 
-        encodeURIComponent(document.getElementById("eventFromDate").value) + 
-        "&eventToDate=" + 
-        encodeURIComponent(document.getElementById("eventToDate").value) + 
-        "&page=" +
-        document.getElementById("page").value +
-        "&count=" +
-        document.getElementById("count").value, 
-        async: false, 
-        success: function(result){
-            data = result;
-        },
-        error: function(XMLHttpRequest, textStatus, errorThrown) { 
-            data = "Status: " + textStatus +
-                "<br />Error: " + errorThrown + 
-                "<br />Message: " + XMLHttpRequest.responseText;
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <!-- Json2html -->
+    <script src="jquery.json2html-master/json2html.js"></script>
+    <script src="jquery.json2html-master/jquery.json2html.js"></script>
+    <script>
+        function convertTime(timestr) {
+            var date = new Date(+timestr);
+            return date;
         }
-    });
-    
-    console.log("Done request");
+        function millisToMinutesAndSeconds(millis) {
+            var minutes = Math.floor(millis / 60000);
+            var seconds = ((millis % 60000) / 1000).toFixed(0);
+            return minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
+        }
+        //List item transform
+        var transform = {
+            "<>": "li", "id": "${id}", "html": [
+                { "<>": "span", "html": "Is Connected?: ${isConnected}" },
+                { "<>": "span", "html": function () { return " Date/time: " + convertTime(this.eventDate); } },
+                { "<>": "span", "html": ", Product: ${product.name}" },
+                { "<>": "span", "html": ", User: ${user.username}" },
+                { "<>": "span", "html": ", Host: ${user.hostname}" }
+            ]
+        };
+        function getUserName() {
+            var username = $("#username").val();
+            if (username.length > 0) {
+                return "username=" + username + "&";
+            }
+            else {
+                return "";
+            }
+        }
+        function UpdateDeviceStates() {
+            var data = "ajax failed";
 
-    $(function(){
-        //Create the list
-      if (data && data.body && data.body.content)
-      {
-        $('#list').json2html(data.body.content,transform);
-        console.log(data.body.content);
-      }
-      else
-      {
-        $('#list').html("<li>" + data + "</li>");
-      }
-    });
+            console.log("Do request");
 
-}
-function ClearList()
-{
-    document.getElementById("list").innerHTML = "";
-}
-</script>
-<h1>PLT REST API - device QD events demo (tenantQd)</h1>
-App id: <input type="text" id="appid" value="edb69c37-17d0-46a5-8bf8-38bc5ee43897" size="50"><br />
-Tenant id: <input type="text" id="tenantid" value="954681e3-7b62-447a-8783-ef447133f8c6" size="50"><br />
-From date: <input type="text" id="eventFromDate" value="2017-06-01T21:06:18.804Z" size="50"><br />
-To date: <input type="text" id="eventToDate" value="2017-06-08T21:06:18.804Z" size="50"><br />
-Page: <input type="text" id="page" value="0" size="5"><br />
-Count (max 99): <input type="text" id="count" value="99" size="5"><br />
-<br />
-<button onclick="ClearList(); UpdateDeviceStates();">Refresh</button><br />
-<ul id="list">
-</ul>
+            // Here is the link to the sandbox example of the QD event report:
+            // http://dev-plantronics.pantheonsite.io/oda/apis/get/reports/usage/commonactions/tenant/%7BtenantApiCode%7D/quickdisconnectusage
+            //
+            // Note: to switch to production tenant, change the host to plantronics-prod.apigee.net
+
+            $.ajax({
+                method: "GET",
+                headers: {
+                    "appId": document.getElementById("appid").value
+                },
+                url: "http://" +
+                document.getElementById("host").value +
+                "/reports/usage/commonactions/tenant/" +
+                document.getElementById("tenantApiCode").value +
+                "/quickdisconnectusage?apikey=" +
+                document.getElementById("apikey").value +
+                "&eventFromDate=" +
+                encodeURIComponent(document.getElementById("eventFromDate").value) +
+                "&eventToDate=" +
+                encodeURIComponent(document.getElementById("eventToDate").value) +
+                "&page=" +
+                document.getElementById("page").value +
+                "&count=" +
+                document.getElementById("count").value,
+                async: false,
+                success: function (result) {
+                    data = result;
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    data = "Status Code: " + XMLHttpRequest.status +
+                        "<br />Status Text: " + textStatus +
+                        "<br />Error Message: " + errorThrown +
+                        "<br />Note: Check browser Developer Tools / Network log for detailed HTTP response code";
+                }
+            });
+
+            console.log("Done request");
+
+            $(function () {
+                //Create the list
+                if (data && data.body && data.body.content) {
+                    $('#list').json2html(data.body.content, transform);
+                    console.log(data.body.content);
+                }
+                else {
+                    $('#list').html("<li>" + data + "</li>");
+                }
+            });
+
+        }
+        function ClearList() {
+            document.getElementById("list").innerHTML = "";
+        }
+    </script>
+    <h1>PLT REST API - device QD events demo (tenantQd)</h1>
+    <table>
+        <tr>
+            <td>
+                Host:
+            </td>
+            <td>
+                <select id="host">
+                    <option value="plantronics-sandbox.apigee.net" selected="selected">Sandbox</option>
+                    <option value="plantronics-prod.apigee.net">Production</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                App id/Consumer Key:
+            </td>
+            <td>
+                <input type="text" id="appid" value="enter-app-id-here-not-required-for-sandbox" size="50">
+            </td>
+        <tr>
+            <td>
+                Tenant API Code:
+            </td>
+            <td><input type="text" id="tenantApiCode" value="af0813e6-81c0-4a77-89d2-3338d0277c42" size="50"></td>
+        <tr>
+            <td>
+                API Key:
+            </td>
+            <td><input type="text" id="apikey" value="1hKMMPFMmaldnC0rcohvXN0UX7UeWPjb" size="50"></td>
+        <tr>
+            <td>
+                From date:
+            </td>
+            <td><input type="text" id="eventFromDate" value="2017-06-01T21:06:18.804Z" size="50"></td>
+        <tr>
+            <td>
+                To date:
+            </td>
+            <td><input type="text" id="eventToDate" value="2017-06-08T21:06:18.804Z" size="50"></td>
+        <tr>
+            <td>
+                Page:
+            </td>
+            <td><input type="text" id="page" value="0" size="5"></td>
+        <tr>
+            <td>
+                Count (max 99):
+            </td>
+            <td><input type="text" id="count" value="99" size="5"></td>
+        </tr>
+    </table>
+    <br />
+    <button onclick="ClearList(); UpdateDeviceStates();">Refresh</button><br />
+    <ul id="list"></ul>
 </html>
