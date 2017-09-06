@@ -10,6 +10,7 @@ your settings, as follows:
 - PubNub_SubscribeChannel2 - this is the PubNub subscribe channel id 2 provided for your Plantronics tenant
 - PubNub_SubscribeChannel3 - this is the PubNub subscribe channel id 3 provided for your Plantronics tenant
 - PubNub_SubscribeChannel4 - this is the PubNub subscribe channel id 4 provided for your Plantronics tenant
-- REST_API_Endpoint - this is URL of a REST Service API to forward the Plantronics realtime event to
+- REST_API_Endpoint - ADD YOUR REST API ENDPOINT HERE TO FORWARD THE EVENT TO
+- SMSNumber - (OPTIONAL) ADD YOUR MOBILE NUMBER HERE TO USE IN YOUR REST API FLOW LATER
     
 Author: Lewis.Collins@Plantronics.com, 6th September 2017
