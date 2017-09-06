@@ -5,6 +5,10 @@ using System.Threading.Tasks;
 using System.Net.Http.Headers;
 using System.Configuration;
 using System.Collections.Specialized;
+using RestSharp;
+using System.Text;
+using System.Collections.Generic;
+using System.Web.Script.Serialization;
 
 namespace PubNubTest1
 {
@@ -28,7 +32,7 @@ namespace PubNubTest1
     {
         static public Pubnub pubnub;
 
-        static HttpClient client = new HttpClient();
+        static RestClient client = new RestClient(ConfigurationManager.AppSettings.Get("REST_API_Endpoint"));
 
         static public void Main()
         {
@@ -80,24 +84,24 @@ namespace PubNubTest1
                         // Or just use the connected event to confirm you are subscribed for
                         // UI / internal notifications, etc
 
-                        pubnub.Publish()
-                                    .Channel(ConfigurationManager.AppSettings.Get("PubNub_SubscribeChannel"))
-                                    .Message("hello!!")
-                                    .Async(new PNPublishResultExt((publishResult, publishStatus) =>
-                                    {
-                                // Check whether request successfully completed or not.
-                                if (!publishStatus.Error)
-                                        {
-                                    // Message successfully published to specified channel.
-                                }
-                                        else
-                                        {
-                                    // Request processing failed.
+                        //pubnub.Publish()
+                        //            .Channel(ConfigurationManager.AppSettings.Get("PubNub_SubscribeChannel"))
+                        //            .Message("hello!!")
+                        //            .Async(new PNPublishResultExt((publishResult, publishStatus) =>
+                        //            {
+                        //        // Check whether request successfully completed or not.
+                        //        if (!publishStatus.Error)
+                        //                {
+                        //            // Message successfully published to specified channel.
+                        //        }
+                        //                else
+                        //                {
+                        //            // Request processing failed.
 
-                                    // Handle message publish error. Check 'Category' property to find out possible issue
-                                    // because of which request did fail.
-                                }
-                                    }));
+                        //            // Handle message publish error. Check 'Category' property to find out possible issue
+                        //            // because of which request did fail.
+                        //        }
+                        //            }));
                     }
                     else if (status.Category == PNStatusCategory.PNReconnectedCategory)
                     {
@@ -115,7 +119,10 @@ namespace PubNubTest1
             // Subscripe to your PubNub channel and wait for events
             pubnub.Subscribe<string>()
                 .Channels(new string[] {
-                    ConfigurationManager.AppSettings.Get("PubNub_SubscribeChannel")
+                    ConfigurationManager.AppSettings.Get("PubNub_SubscribeChannel1"),
+                    ConfigurationManager.AppSettings.Get("PubNub_SubscribeChannel2"),
+                    ConfigurationManager.AppSettings.Get("PubNub_SubscribeChannel3"),
+                    ConfigurationManager.AppSettings.Get("PubNub_SubscribeChannel4"),
                 })
                 .Execute();
 
@@ -125,9 +132,9 @@ namespace PubNubTest1
         static async Task RunAsync()
         {
             // New code:
-            client.BaseAddress = new Uri(ConfigurationManager.AppSettings.Get("REST_API_BaseAddress"));
-            client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            //client.BaseAddress = new Uri(ConfigurationManager.AppSettings.Get("REST_API_BaseAddress"));
+            //client.DefaultRequestHeaders.Accept.Clear();
+            //client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
             System.Console.WriteLine("press enter to quit...");
             System.Console.ReadLine();
@@ -142,17 +149,87 @@ namespace PubNubTest1
         /// <returns></returns>
         static async Task ForwardMessageToHTTPService(object message)
         {
-            try
-            {
-                HttpResponseMessage response = await client.PostAsJsonAsync(ConfigurationManager.AppSettings.Get("REST_API_RequestUri"), message);
-                response.EnsureSuccessStatusCode();
-
-                Console.WriteLine("response: " + await response.Content.ReadAsStringAsync());
+            RootObject JSONObj = null;
+            try {
+                JSONObj = new JavaScriptSerializer().Deserialize<RootObject>(message.ToString());
             }
             catch (Exception e)
             {
-                Console.WriteLine("error: " + e.ToString());
+                Console.WriteLine(e);
+            }
+            //Console.WriteLine("ForwardMessageToHTTPService:" + message);
+
+            if (JSONObj != null)
+            {
+                //Format: { "SMSNumber":"a mobile number", "Message":"a message body"}
+                StringBuilder sb = new StringBuilder();
+                sb.Append("{ \"SMSNumber\":\"");
+                sb.Append(ConfigurationManager.AppSettings.Get("SMSNumber"));
+                sb.Append("\",\"Message\":\"");
+                sb.Append(JSONObj.eventType);
+                sb.Append(", ");
+                sb.Append(JSONObj.timeStamp);
+                sb.Append(", ");
+                sb.Append(JSONObj.productCode.@base);
+                sb.Append(", ");
+                sb.Append(JSONObj.productCode.headset);
+                sb.Append("\"}");
+                try
+                {
+                    var request = new RestRequest(Method.POST);
+                    request.AddHeader("postman-token", "64e44b93-628a-eeb8-2efe-ae1ace92187a");
+                    request.AddHeader("cache-control", "no-cache");
+                    request.AddHeader("content-type", "multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW");
+                    request.AddParameter("multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW", "------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"family\"\r\n\r\nTest\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"type\"\r\n\r\nSMS\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"version\"\r\n\r\n1.0\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"eventBody\"\r\n\r\n" 
+                        + sb.ToString() 
+                        + "\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"\"\r\n\r\n\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW--", ParameterType.RequestBody);
+                    IRestResponse response = client.Execute(request);
+
+                    //HttpResponseMessage response = await client.PostAsJsonAsync(ConfigurationManager.AppSettings.Get("REST_API_RequestUri"), message);
+                    //response.EnsureSuccessStatusCode();
+
+                    Console.WriteLine("response: " + response.StatusDescription); // await response.Content.ReadAsStringAsync());
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("error: " + e.ToString());
+                }
+            }
+            else
+            {
+                Console.WriteLine("could not parse json from pubnub event: "+message.ToString());
             }
         }
+    }
+
+    public class BuildCode
+    {
+        public string @base { get; set; }
+        public string headset { get; set; }
+    }
+
+    public class GenesSerialNumber
+    {
+        public string @base { get; set; }
+        public string headset { get; set; }
+    }
+
+    public class ProductCode
+    {
+        public string @base { get; set; }
+        public string headset { get; set; }
+    }
+
+    public class RootObject
+    {
+        public BuildCode buildCode { get; set; }
+        public string deviceId { get; set; }
+        public string eventType { get; set; }
+        public GenesSerialNumber genesSerialNumber { get; set; }
+        public string originTime { get; set; }
+        public ProductCode productCode { get; set; }
+        public string tenantId { get; set; }
+        public string timeStamp { get; set; }
+        public string version { get; set; }
     }
 }
